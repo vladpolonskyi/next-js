@@ -1,0 +1,65 @@
+name: CI/CD Pipeline for Next.js
+
+on:
+  push:
+    branches:
+      - main # Запуск при пуше в main
+  pull_request:
+    branches:
+      - main # Запуск при создании PR в main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Чекаут репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Установка Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Укажите вашу версию Node.js
+          cache: 'npm' # Кэширование зависимостей
+
+      # 3. Установка зависимостей
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Сборка проекта
+      - name: Build project
+        run: npm run build
+
+      # 5. Запуск тестов (опционально)
+      - name: Run tests
+        run: npm run test
+        if: always() # Выполняется даже если сборка упала, для отладки
+
+  deploy:
+    needs: build-and-test # Запускается только после успешного build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Деплой только для main ветки
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      # 6. Деплой на Vercel
+      - name: Deploy to Vercel
+        run: npx vercel --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_SECRET }}
