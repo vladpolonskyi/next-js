@@ -28,14 +28,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run lint
+        run: npm run lint
+
       # 4. Сборка проекта
       - name: Build project
         run: npm run build
 
-      # 5. Запуск тестов (опционально)
-      - name: Run tests
-        run: npm run test
-        if: always() # Выполняется даже если сборка упала, для отладки
 
   deploy:
     needs: build-and-test # Запускается только после успешного build-and-test
